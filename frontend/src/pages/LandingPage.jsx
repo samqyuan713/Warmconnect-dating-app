@@ -1,7 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Heart, Sparkles, Users, MessageHeart } from 'lucide-react'
+import { Heart, Sparkles, Users, MessageCircle } from 'lucide-react'
 
 export default function LandingPage() {
   const navigate = useNavigate()
@@ -9,7 +9,7 @@ export default function LandingPage() {
   const features = [
     { icon: Sparkles, title: "Interest Matching", desc: "Connect through shared passions and hobbies" },
     { icon: Users, title: "Activity Dates", desc: "Plan real experiences, not just conversations" },
-    { icon: MessageHeart, title: "Meaningful Chats", desc: "Start with what you both love" },
+    { icon: MessageCircle, title: "Meaningful Chats", desc: "Start with what you both love" },
   ]
 
   return (
