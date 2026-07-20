@@ -10,9 +10,7 @@ export default function MatchesPage() {
   const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchMatches()
-  }, [])
+  useEffect(() => { fetchMatches() }, [])
 
   const fetchMatches = async () => {
     try {
@@ -37,21 +35,21 @@ export default function MatchesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[70vh]">
-        <div className="w-10 h-10 border-3 border-gray-200 border-t-[#FF6B6B] rounded-full animate-spin" />
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="w-10 h-10 border-3 border-[var(--border)] border-t-[#FF6B6B] rounded-full animate-spin" />
       </div>
     )
   }
 
   if (matches.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[70vh] px-6 text-center">
-        <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-5">
-          <Heart size={28} className="text-gray-300" />
+      <div className="flex flex-col items-center justify-center h-[60vh] px-6 text-center">
+        <div className="w-16 h-16 rounded-full bg-[var(--bg)] flex items-center justify-center mb-5">
+          <Heart size={24} className="text-[var(--text-muted)]" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">No Matches Yet</h2>
-        <p className="text-gray-400 mb-2">Start swiping to find your perfect match!</p>
-        <button onClick={() => navigate('/discover')} className="mt-4 px-8 py-3 rounded-full btn-primary font-semibold text-sm">
+        <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">No Matches Yet</h2>
+        <p className="text-[var(--text-secondary)] text-sm mb-2">Start swiping to find your perfect match!</p>
+        <button onClick={() => navigate('/discover')} className="btn-primary px-8 mt-4">
           Start Discovering
         </button>
       </div>
@@ -59,27 +57,27 @@ export default function MatchesPage() {
   }
 
   return (
-    <div className="px-4 pt-4 pb-6 lg:px-0">
+    <div className="px-4 pt-4 pb-6">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Messages</h2>
-          <p className="text-sm text-gray-400">{matches.length} match{matches.length !== 1 ? 'es' : ''}</p>
+          <h2 className="section-title">Messages</h2>
+          <p className="text-sm text-[var(--text-secondary)] mt-0.5">{matches.length} match{matches.length !== 1 ? 'es' : ''}</p>
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2">
         {matches.map((match, index) => (
           <motion.div
             key={match.id}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="bg-white rounded-2xl p-4 shadow-soft flex items-center gap-4 cursor-pointer hover:shadow-card transition-shadow"
+            className="card p-4 card-hover flex items-center gap-4 cursor-pointer"
             onClick={() => navigate(`/chat/${match.id}`)}
           >
             {/* Avatar */}
             <div className="relative shrink-0">
-              <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-gray-100">
+              <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-[var(--border-light)]">
                 <img 
                   src={match.user.avatar_url || `https://ui-avatars.com/api/?name=${match.user.full_name}&background=FF6B6B&color=fff`}
                   alt={match.user.full_name}
@@ -96,16 +94,16 @@ export default function MatchesPage() {
             {/* Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-0.5">
-                <h3 className="font-semibold text-gray-800 truncate">{match.user.full_name}</h3>
-                <div className="flex items-center gap-1 text-[#FF6B6B] shrink-0 ml-2">
-                  <Sparkles size={11} />
-                  <span className="text-xs font-bold">{match.compatibility_score}%</span>
+                <h3 className="font-semibold text-[var(--text-primary)] text-[15px] truncate">{match.user.full_name}</h3>
+                <div className="flex items-center gap-1 shrink-0 ml-2">
+                  <Sparkles size={11} className="text-[#FF6B6B]" />
+                  <span className="text-xs font-bold text-[#FF6B6B]">{match.compatibility_score}%</span>
                 </div>
               </div>
-              <p className={`text-sm truncate ${match.unread_count > 0 ? 'text-gray-800 font-medium' : 'text-gray-400'}`}>
+              <p className={`text-sm truncate ${match.unread_count > 0 ? 'text-[var(--text-primary)] font-medium' : 'text-[var(--text-secondary)]'}`}>
                 {match.last_message || 'Start the conversation'}
               </p>
-              <p className="text-xs text-gray-300 mt-0.5">
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
                 {match.last_message_at 
                   ? formatDistanceToNow(new Date(match.last_message_at), { addSuffix: true })
                   : formatDistanceToNow(new Date(match.created_at), { addSuffix: true })
@@ -116,20 +114,14 @@ export default function MatchesPage() {
             {/* Actions */}
             <div className="flex items-center gap-1 shrink-0">
               <button 
-                onClick={(e) => {
-                  e.stopPropagation()
-                  navigate(`/chat/${match.id}`)
-                }}
-                className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-[#FF6B6B] hover:text-white transition-all"
+                onClick={(e) => { e.stopPropagation(); navigate(`/chat/${match.id}`) }}
+                className="w-9 h-9 rounded-full bg-[var(--bg)] flex items-center justify-center text-[var(--text-secondary)] hover:bg-[#FF6B6B] hover:text-white transition-all"
               >
                 <MessageCircle size={16} />
               </button>
               <button 
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleUnmatch(match.id)
-                }}
-                className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-red-50 hover:text-red-400 transition-all"
+                onClick={(e) => { e.stopPropagation(); handleUnmatch(match.id) }}
+                className="w-9 h-9 rounded-full bg-[var(--bg)] flex items-center justify-center text-[var(--text-muted)] hover:bg-red-50 hover:text-red-500 transition-all"
               >
                 <Trash2 size={14} />
               </button>

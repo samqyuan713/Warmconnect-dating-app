@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence, PanInfo } from 'framer-motion'
-import { X, Heart, Star, MapPin, Info, ChevronUp, SlidersHorizontal, RotateCcw } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { X, Heart, Star, MapPin, Info, SlidersHorizontal, RotateCcw } from 'lucide-react'
 import axios from 'axios'
 import { useAuth } from '../contexts/AuthContext'
 import MatchModal from '../components/MatchModal'
@@ -13,12 +13,9 @@ export default function DiscoverPage() {
   const [matchData, setMatchData] = useState(null)
   const [showFilters, setShowFilters] = useState(false)
   const [showDetail, setShowDetail] = useState(false)
-  const [direction, setDirection] = useState(null)
+  const [swipeDir, setSwipeDir] = useState(null)
   const [filters, setFilters] = useState({
-    min_age: 18,
-    max_age: 99,
-    max_distance_km: 50,
-    gender: '',
+    min_age: 18, max_age: 99, max_distance_km: 50, gender: '',
   })
 
   const fetchCandidates = useCallback(async () => {
@@ -41,63 +38,50 @@ export default function DiscoverPage() {
     }
   }, [filters])
 
-  useEffect(() => {
-    fetchCandidates()
-  }, [fetchCandidates])
+  useEffect(() => { fetchCandidates() }, [fetchCandidates])
 
-  const handleSwipe = async (swipeDirection) => {
+  const handleSwipe = async (direction) => {
     if (currentIndex >= candidates.length) return
     const candidate = candidates[currentIndex]
 
-    setDirection(swipeDirection)
+    setSwipeDir(direction)
 
     setTimeout(async () => {
       try {
         const res = await axios.post('/api/swipes', {
           swiped_id: candidate.id,
-          direction: swipeDirection === 'right' ? 'right' : 'left'
+          direction: direction === 'right' ? 'right' : 'left'
         })
-
         if (res.data.is_match) {
           setMatchData({ ...candidate, match_id: res.data.id })
         }
       } catch (err) {
         console.error(err)
       }
-
       setCurrentIndex(prev => prev + 1)
-      setDirection(null)
-    }, 300)
-  }
-
-  const handleDragEnd = (event, info) => {
-    const threshold = 100
-    if (info.offset.x > threshold) {
-      handleSwipe('right')
-    } else if (info.offset.x < -threshold) {
-      handleSwipe('left')
-    }
+      setSwipeDir(null)
+    }, 350)
   }
 
   const current = candidates[currentIndex]
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[70vh]">
-        <div className="w-10 h-10 border-3 border-gray-200 border-t-[#FF6B6B] rounded-full animate-spin" />
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="w-10 h-10 border-3 border-[var(--border)] border-t-[#FF6B6B] rounded-full animate-spin" />
       </div>
     )
   }
 
   if (currentIndex >= candidates.length) {
     return (
-      <div className="flex flex-col items-center justify-center h-[70vh] px-6 text-center">
-        <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-5">
-          <RotateCcw size={28} className="text-gray-400" />
+      <div className="flex flex-col items-center justify-center h-[60vh] px-6 text-center">
+        <div className="w-16 h-16 rounded-full bg-[var(--bg)] flex items-center justify-center mb-5">
+          <RotateCcw size={24} className="text-[var(--text-muted)]" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">No More Profiles</h2>
-        <p className="text-gray-400 mb-8 max-w-xs">You've seen everyone for now. Check your matches or come back later!</p>
-        <button onClick={fetchCandidates} className="px-8 py-3.5 rounded-full btn-primary font-semibold text-sm">
+        <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">No More Profiles</h2>
+        <p className="text-[var(--text-secondary)] text-sm mb-8 max-w-xs">You have seen everyone for now. Check your matches or come back later!</p>
+        <button onClick={fetchCandidates} className="btn-primary px-8">
           Discover Again
         </button>
       </div>
@@ -105,12 +89,12 @@ export default function DiscoverPage() {
   }
 
   return (
-    <div className="px-4 pt-4 pb-6 lg:px-0">
+    <div className="px-4 pt-4 pb-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-gray-800">Discover</h2>
+        <h2 className="section-title">Discover</h2>
         <button onClick={() => setShowFilters(!showFilters)} 
-          className="w-10 h-10 rounded-full bg-white shadow-soft flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors">
+          className="w-10 h-10 rounded-xl bg-white border border-[var(--border-light)] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border)] transition-all shadow-sm">
           <SlidersHorizontal size={18} />
         </button>
       </div>
@@ -120,29 +104,29 @@ export default function DiscoverPage() {
         {showFilters && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden mb-4">
-            <div className="bg-white rounded-2xl p-4 shadow-soft">
+            <div className="card p-4">
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div>
-                  <label className="text-xs font-medium text-gray-400 mb-1 block">Min Age</label>
+                  <label className="text-xs font-medium text-[var(--text-secondary)] mb-1 block">Min Age</label>
                   <input type="number" value={filters.min_age} onChange={e => setFilters({...filters, min_age: e.target.value})}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm bg-gray-50" />
+                    className="w-full px-3 py-2.5 rounded-xl border border-[var(--border)] text-sm bg-white focus:border-[#FF6B6B] focus:ring-2 focus:ring-[#FF6B6B]/10 outline-none transition-all" />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-400 mb-1 block">Max Age</label>
+                  <label className="text-xs font-medium text-[var(--text-secondary)] mb-1 block">Max Age</label>
                   <input type="number" value={filters.max_age} onChange={e => setFilters({...filters, max_age: e.target.value})}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm bg-gray-50" />
+                    className="w-full px-3 py-2.5 rounded-xl border border-[var(--border)] text-sm bg-white focus:border-[#FF6B6B] focus:ring-2 focus:ring-[#FF6B6B]/10 outline-none transition-all" />
                 </div>
               </div>
               <div className="mb-3">
-                <label className="text-xs font-medium text-gray-400 mb-1 block">Max Distance: {filters.max_distance_km}km</label>
+                <label className="text-xs font-medium text-[var(--text-secondary)] mb-1 block">Max Distance: {filters.max_distance_km}km</label>
                 <input type="range" min="5" max="200" value={filters.max_distance_km}
                   onChange={e => setFilters({...filters, max_distance_km: e.target.value})}
-                  className="w-full accent-[#FF6B6B]" />
+                  className="w-full accent-[#FF6B6B] h-1.5 bg-[var(--border)] rounded-full appearance-none" />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-400 mb-1 block">Gender</label>
+                <label className="text-xs font-medium text-[var(--text-secondary)] mb-1 block">Gender</label>
                 <select value={filters.gender} onChange={e => setFilters({...filters, gender: e.target.value})}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm bg-gray-50">
+                  className="w-full px-3 py-2.5 rounded-xl border border-[var(--border)] text-sm bg-white focus:border-[#FF6B6B] focus:ring-2 focus:ring-[#FF6B6B]/10 outline-none transition-all">
                   <option value="">Any</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
@@ -153,30 +137,23 @@ export default function DiscoverPage() {
         )}
       </AnimatePresence>
 
-      {/* Card Stack */}
-      <div className="relative h-[520px] lg:h-[580px]">
+      {/* Card */}
+      <div className="relative h-[480px] lg:h-[520px]">
         <AnimatePresence mode="wait">
           {current && (
             <motion.div
               key={current.id}
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.92, y: 30 }}
               animate={{ 
-                opacity: 1, 
-                scale: 1, 
-                y: 0,
-                x: direction === 'right' ? 300 : direction === 'left' ? -300 : 0,
-                rotate: direction === 'right' ? 15 : direction === 'left' ? -15 : 0,
+                opacity: 1, scale: 1, y: 0,
+                x: swipeDir === 'right' ? 400 : swipeDir === 'left' ? -400 : 0,
+                rotate: swipeDir === 'right' ? 18 : swipeDir === 'left' ? -18 : 0,
               }}
               exit={{ opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.7}
-              onDragEnd={handleDragEnd}
-              className="absolute inset-0 cursor-grab active:cursor-grabbing"
+              transition={{ type: 'spring', damping: 22, stiffness: 280 }}
+              className="absolute inset-0"
             >
-              {/* Photo */}
-              <div className="relative h-full rounded-3xl overflow-hidden shadow-card">
+              <div className="swipe-card h-full">
                 <img 
                   src={current.avatar_url || `https://ui-avatars.com/api/?name=${current.full_name}&background=FF6B6B&color=fff&size=600`}
                   alt={current.full_name}
@@ -184,85 +161,68 @@ export default function DiscoverPage() {
                   draggable={false}
                 />
 
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent" />
 
-                {/* Like/Nope stamps */}
-                <motion.div 
-                  className="absolute top-6 left-6 border-4 border-green-400 rounded-xl px-4 py-1.5 transform -rotate-12"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: direction === 'right' ? 1 : 0 }}
-                >
-                  <span className="text-green-400 font-bold text-2xl tracking-wider">LIKE</span>
-                </motion.div>
-                <motion.div 
-                  className="absolute top-6 right-6 border-4 border-red-400 rounded-xl px-4 py-1.5 transform rotate-12"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: direction === 'left' ? 1 : 0 }}
-                >
-                  <span className="text-red-400 font-bold text-2xl tracking-wider">NOPE</span>
-                </motion.div>
+                {/* Stamps */}
+                <motion.div className="stamp-like" animate={{ opacity: swipeDir === 'right' ? 1 : 0 }} />
+                <motion.div className="stamp-nope" animate={{ opacity: swipeDir === 'left' ? 1 : 0 }} />
 
-                {/* Info Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                {/* Info */}
+                <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
                   <div className="flex items-end justify-between mb-3">
                     <div>
-                      <h3 className="text-3xl font-bold">{current.full_name} <span className="text-2xl font-normal">{current.age}</span></h3>
-                      <div className="flex items-center gap-1.5 mt-1 text-white/80">
-                        <MapPin size={14} />
+                      <h3 className="text-[28px] font-bold leading-tight">{current.full_name} <span className="text-[22px] font-normal opacity-80">{current.age}</span></h3>
+                      <div className="flex items-center gap-1.5 mt-1.5 text-white/70">
+                        <MapPin size={13} />
                         <span className="text-sm">{current.distance_km ? `${current.distance_km}km away` : current.location}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full">
-                      <Star size={13} fill="currentColor" className="text-yellow-400" />
+                    <div className="flex items-center gap-1 bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-full">
+                      <Star size={12} fill="#FCD34D" className="text-yellow-400" />
                       <span className="text-sm font-bold">{current.compatibility_score}%</span>
                     </div>
                   </div>
 
-                  {/* Shared tags */}
+                  {/* Tags */}
                   {(current.shared_interests?.length > 0 || current.shared_activities?.length > 0) && (
                     <div className="flex flex-wrap gap-1.5 mb-3">
                       {current.shared_interests?.slice(0, 3).map(i => (
-                        <span key={i} className="px-2.5 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-medium">{i}</span>
+                        <span key={i} className="px-2.5 py-1 bg-white/15 backdrop-blur-md rounded-full text-xs font-medium">{i}</span>
                       ))}
                       {current.shared_activities?.slice(0, 2).map(a => (
-                        <span key={a} className="px-2.5 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-medium">{a}</span>
+                        <span key={a} className="px-2.5 py-1 bg-white/15 backdrop-blur-md rounded-full text-xs font-medium">{a}</span>
                       ))}
                     </div>
                   )}
 
-                  {/* Expand detail button */}
                   <button onClick={() => setShowDetail(!showDetail)} 
-                    className="flex items-center gap-1 text-white/70 hover:text-white text-sm transition-colors">
+                    className="flex items-center gap-1 text-white/60 hover:text-white text-sm transition-colors">
                     <Info size={14} />
                     {showDetail ? 'Less info' : 'More info'}
-                    <ChevronUp size={14} className={`transition-transform ${showDetail ? 'rotate-180' : ''}`} />
                   </button>
                 </div>
 
-                {/* Detail panel */}
+                {/* Detail Panel */}
                 <AnimatePresence>
                   {showDetail && (
                     <motion.div
-                      initial={{ y: '100%' }}
-                      animate={{ y: 0 }}
-                      exit={{ y: '100%' }}
+                      initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
                       transition={{ type: 'spring', damping: 25 }}
-                      className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl rounded-t-3xl p-6 max-h-[60%] overflow-y-auto"
+                      className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-5 max-h-[55%] overflow-y-auto"
                     >
-                      <div className="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
-                      <p className="text-gray-600 text-sm leading-relaxed mb-4">{current.bio || 'No bio yet'}</p>
+                      <div className="w-10 h-1 bg-[var(--border)] rounded-full mx-auto mb-4" />
+                      <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">{current.bio || 'No bio yet'}</p>
 
                       {current.occupation && (
-                        <p className="text-sm text-gray-500 mb-4">Works as {current.occupation}</p>
+                        <p className="text-sm text-[var(--text-secondary)] mb-4">Works as <span className="font-medium text-[var(--text-primary)]">{current.occupation}</span></p>
                       )}
 
                       {current.shared_interests?.length > 0 && (
                         <div className="mb-3">
-                          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Shared Interests</p>
+                          <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">Shared Interests</p>
                           <div className="flex flex-wrap gap-2">
                             {current.shared_interests.map(i => (
-                              <span key={i} className="px-3 py-1.5 rounded-full tag-pill text-xs font-medium">{i}</span>
+                              <span key={i} className="tag">{i}</span>
                             ))}
                           </div>
                         </div>
@@ -270,10 +230,10 @@ export default function DiscoverPage() {
 
                       {current.shared_activities?.length > 0 && (
                         <div>
-                          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Shared Activities</p>
+                          <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">Shared Activities</p>
                           <div className="flex flex-wrap gap-2">
                             {current.shared_activities.map(a => (
-                              <span key={a} className="px-3 py-1.5 rounded-full tag-pill text-xs font-medium">{a}</span>
+                              <span key={a} className="tag">{a}</span>
                             ))}
                           </div>
                         </div>
@@ -289,22 +249,16 @@ export default function DiscoverPage() {
 
       {/* Action Buttons */}
       <div className="flex items-center justify-center gap-5 mt-6">
-        <motion.button
-          whileTap={{ scale: 0.85 }}
-          whileHover={{ scale: 1.05 }}
+        <motion.button whileTap={{ scale: 0.85 }} whileHover={{ scale: 1.05 }}
           onClick={() => handleSwipe('left')}
-          className="w-16 h-16 rounded-full bg-white shadow-card flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors"
-        >
-          <X size={28} strokeWidth={2.5} />
+          className="w-[60px] h-[60px] rounded-full bg-white border border-[var(--border-light)] flex items-center justify-center text-[#EF4444] hover:bg-red-50 hover:border-red-200 transition-all shadow-lg shadow-red-100/50">
+          <X size={26} strokeWidth={2.5} />
         </motion.button>
 
-        <motion.button
-          whileTap={{ scale: 0.85 }}
-          whileHover={{ scale: 1.05 }}
+        <motion.button whileTap={{ scale: 0.85 }} whileHover={{ scale: 1.05 }}
           onClick={() => handleSwipe('right')}
-          className="w-16 h-16 rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#ee5a5a] shadow-lg flex items-center justify-center text-white"
-        >
-          <Heart size={28} fill="white" />
+          className="w-[60px] h-[60px] rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#E85555] flex items-center justify-center text-white shadow-lg shadow-[#FF6B6B]/30">
+          <Heart size={26} fill="white" />
         </motion.button>
       </div>
 
