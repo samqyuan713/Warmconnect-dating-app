@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Send, Heart, Image, MapPin } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { ArrowLeft, Send, Sparkles } from 'lucide-react'
 import axios from 'axios'
 import { format } from 'date-fns'
 import { useAuth } from '../contexts/AuthContext'
@@ -15,7 +15,6 @@ export default function ChatPage() {
   const [matchInfo, setMatchInfo] = useState(null)
   const [loading, setLoading] = useState(true)
   const messagesEndRef = useRef(null)
-  const inputRef = useRef(null)
 
   useEffect(() => {
     fetchMessages()
@@ -83,8 +82,8 @@ export default function ChatPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="w-10 h-10 border-4 border-[var(--warm-coral)] border-t-transparent rounded-full animate-spin" />
+      <div className="flex items-center justify-center h-[70vh]">
+        <div className="w-10 h-10 border-3 border-gray-200 border-t-[#FF6B6B] rounded-full animate-spin" />
       </div>
     )
   }
@@ -92,54 +91,51 @@ export default function ChatPage() {
   const groupedMessages = groupMessagesByDate(messages)
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)]">
+    <div className="flex flex-col h-[calc(100vh-80px)] lg:h-[calc(100vh-24px)] bg-white lg:rounded-3xl lg:shadow-card overflow-hidden">
       {/* Chat Header */}
-      <div className="glass px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
-        <button onClick={() => navigate('/matches')} className="p-2 -ml-2 text-[var(--warm-gray)] hover:text-[var(--warm-brown)]">
+      <div className="flex items-center gap-3 px-4 py-3.5 bg-white border-b border-gray-100 sticky top-0 z-10">
+        <button onClick={() => navigate('/matches')} className="p-2 -ml-2 text-gray-400 hover:text-gray-700 transition-colors">
           <ArrowLeft size={22} />
         </button>
-        <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-[var(--warm-peach)]">
+        <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-gray-100">
           <img 
-            src={matchInfo?.user?.avatar_url || `https://ui-avatars.com/api/?name=${matchInfo?.user?.full_name}&background=FFE4D6&color=C75B39`}
+            src={matchInfo?.user?.avatar_url || `https://ui-avatars.com/api/?name=${matchInfo?.user?.full_name}&background=FF6B6B&color=fff`}
             alt={matchInfo?.user?.full_name}
             className="w-full h-full object-cover"
           />
         </div>
         <div className="flex-1">
-          <h3 className="font-semibold text-[var(--warm-brown)]">{matchInfo?.user?.full_name}</h3>
-          <div className="flex items-center gap-1 text-xs text-[var(--warm-coral)]">
-            <Heart size={10} fill="currentColor" />
+          <h3 className="font-semibold text-gray-800 text-sm">{matchInfo?.user?.full_name}</h3>
+          <div className="flex items-center gap-1 text-xs text-[#FF6B6B]">
+            <Sparkles size={10} />
             <span>{matchInfo?.compatibility_score}% match</span>
           </div>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6 bg-gray-50/50">
         {Object.entries(groupedMessages).map(([date, msgs]) => (
           <div key={date}>
             <div className="flex items-center justify-center mb-4">
-              <span className="text-xs text-[var(--warm-gray)] bg-[var(--warm-peach)]/50 px-3 py-1 rounded-full">
+              <span className="text-[11px] text-gray-400 bg-gray-100 px-3 py-1 rounded-full font-medium">
                 {date}
               </span>
             </div>
             <div className="space-y-3">
-              {msgs.map((msg, i) => {
+              {msgs.map((msg) => {
                 const isMe = msg.sender_id === user?.id
                 return (
                   <motion.div
                     key={msg.id}
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className={`max-w-[75%] ${isMe ? 'message-sent' : 'message-received'} px-4 py-2.5`}>
-                      <p className="text-sm">{msg.content}</p>
-                      <p className={`text-[10px] mt-1 ${isMe ? 'text-white/60' : 'text-[var(--warm-gray)]'}`}>
+                    <div className={`max-w-[75%] px-4 py-2.5 ${isMe ? 'msg-sent' : 'msg-received'}`}>
+                      <p className="text-sm leading-relaxed">{msg.content}</p>
+                      <p className={`text-[10px] mt-1 ${isMe ? 'text-white/50' : 'text-gray-400'}`}>
                         {format(new Date(msg.created_at), 'h:mm a')}
-                        {isMe && (
-                          <span className="ml-1">{msg.is_read ? 'Read' : 'Sent'}</span>
-                        )}
                       </p>
                     </div>
                   </motion.div>
@@ -152,22 +148,21 @@ export default function ChatPage() {
       </div>
 
       {/* Input */}
-      <form onSubmit={sendMessage} className="glass p-3 flex items-center gap-2 sticky bottom-0">
+      <form onSubmit={sendMessage} className="flex items-center gap-2 px-4 py-3 bg-white border-t border-gray-100">
         <input
-          ref={inputRef}
           type="text"
           value={newMessage}
           onChange={e => setNewMessage(e.target.value)}
           placeholder="Type a message..."
-          className="flex-1 px-4 py-3 rounded-xl border-2 border-[var(--warm-peach)] bg-white/80 focus:border-[var(--warm-coral)] focus:outline-none text-sm"
+          className="flex-1 px-4 py-3 rounded-full bg-gray-100 border-0 text-sm focus:ring-2 focus:ring-[#FF6B6B]/20 placeholder:text-gray-400"
         />
         <motion.button
           whileTap={{ scale: 0.9 }}
           type="submit"
           disabled={!newMessage.trim()}
-          className="w-12 h-12 rounded-full btn-warm flex items-center justify-center disabled:opacity-50"
+          className="w-11 h-11 rounded-full btn-primary flex items-center justify-center disabled:opacity-40"
         >
-          <Send size={18} />
+          <Send size={16} />
         </motion.button>
       </form>
     </div>
